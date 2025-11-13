@@ -1,0 +1,43 @@
+{
+  "name": "bizflow-backend",
+  "version": "1.0.0",
+  "description": "BizFlow Backend API - Sistema de gestión de clientes y ventas",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "seed": "node src/scripts/seed.js",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "bizflow",
+    "crm",
+    "sales",
+    "clients"
+  ],
+  "author": "UXNICorp",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "csurf": "^1.2.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "morgan": "^1.10.0",
+    "pdfkit": "^0.13.0",
+    "xss": "^1.0.15"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

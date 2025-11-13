@@ -29,36 +29,36 @@ mongoose
     process.exit(1);
   });
 
-// CORS (debe ir ANTES de helmet y rate limiting)
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000',
-  'https://biz-flow-uxn.vercel.app',
-  process.env.CLIENT_URL
-].filter(Boolean);
-
+// CORS - Configuración permisiva para desarrollo y producción
 app.use(cors({
   origin: function (origin, callback) {
-    // Permitir peticiones sin origin (como Postman o mobile apps)
-    if (!origin) return callback(null, true);
-    
-    // En producción, permitir todos los dominios de Vercel (preview deployments)
-    if (origin.includes('vercel.app')) {
+    // Permitir todas las peticiones en desarrollo
+    if (process.env.NODE_ENV === 'development') {
       return callback(null, true);
     }
     
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('❌ CORS bloqueado para:', origin);
-      callback(new Error('Not allowed by CORS'));
+    // Permitir peticiones sin origin (Postman, mobile apps)
+    if (!origin) return callback(null, true);
+    
+    // Permitir todos los subdominios de Vercel
+    if (origin.includes('vercel.app') || origin.includes('localhost')) {
+      return callback(null, true);
     }
+    
+    // Permitir CLIENT_URL específico
+    if (origin === process.env.CLIENT_URL) {
+      return callback(null, true);
+    }
+    
+    console.log('❌ CORS bloqueado para:', origin);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Cookie'],
-  exposedHeaders: ['Set-Cookie']
+  exposedHeaders: ['Set-Cookie'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // Middleware de seguridad

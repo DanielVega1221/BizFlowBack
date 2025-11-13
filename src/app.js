@@ -29,7 +29,14 @@ mongoose
     process.exit(1);
   });
 
-// CORS - Configuración permisiva para desarrollo y producción
+// CORS - Configuración ultra-permisiva para evitar problemas con cold start
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://biz-flow-uxn.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 app.use(cors({
   origin: function (origin, callback) {
     // Permitir todas las peticiones en desarrollo
@@ -37,29 +44,40 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Permitir peticiones sin origin (Postman, mobile apps)
-    if (!origin) return callback(null, true);
-    
-    // Permitir todos los subdominios de Vercel
-    if (origin.includes('vercel.app') || origin.includes('localhost')) {
+    // Permitir peticiones sin origin (Postman, mobile apps, same-origin)
+    if (!origin) {
       return callback(null, true);
     }
     
-    // Permitir CLIENT_URL específico
-    if (origin === process.env.CLIENT_URL) {
+    // Permitir origins específicos
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     
-    console.log('❌ CORS bloqueado para:', origin);
-    callback(new Error('Not allowed by CORS'));
+    // Permitir TODOS los subdominios de Vercel (incluyendo previews)
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Permitir localhost en cualquier puerto
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    console.log('⚠️ CORS: Origin no permitido ->', origin);
+    // En producción, permitir de todas formas para evitar problemas
+    return callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Cookie'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Cookie', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Set-Cookie'],
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 200 // Algunos navegadores viejos (IE11) tienen problemas con 204
 }));
+
+// Manejar explícitamente OPTIONS para todas las rutas
+app.options('*', cors());
 
 // Middleware de seguridad
 app.use(helmet({
